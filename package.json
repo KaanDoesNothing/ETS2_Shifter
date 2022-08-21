@@ -1,0 +1,21 @@
+{
+  "name": "ETS2Client",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^4.11.0",
+    "chalk": "4.1.2",
+    "kbm-robot": "^0.0.4",
+    "node-key-sender": "^1.0.11",
+    "robotjs": "^0.6.0",
+    "trucksim-telemetry": "^0.16.1",
+    "ws": "^8.8.1"
+  },
+  "devDependencies": {
+    "@types/blessed": "^0.1.19",
+    "@types/kbm-robot": "^0.0.0"
+  }
+}
