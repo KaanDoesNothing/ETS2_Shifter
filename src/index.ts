@@ -1,12 +1,11 @@
 import blessed from "blessed";
 import contrib from "blessed-contrib";
 import { Worker } from "worker_threads";
+import tst from "trucksim-telemetry";
+
+let gameData: any = undefined;
 
 let cache = {
-    gear_current: 0,
-    speed_current: 0,
-    rpm_current: 0,
-    pitch_current: 0,
     preset_current: "Unknown"
 }
 
@@ -35,41 +34,24 @@ automatic.on("message", handleMessage);
 automatic.on("error", (error) => console.log(error));
 automatic.on("exit", () => log.log("Worker Closed."));
 
-// log.log("Starting Statistics");
-// const statistic = new Worker("./automatic.js");
-// statistic.on("message", handleMessage);
-// statistic.on("error", (error) => console.log(error));
-// statistic.on("exit", () => log.log("Worker Closed."));
-
-
-
 function handleMessage(msg: {type: string, content: any}) {
-    // log.log(JSON.stringify(msg));
     if(msg.type === "log") {
         log.log(msg.content);
-        renderStats();
-    }else if(msg.type === "gear_current") {
-        cache.gear_current = msg.content;
-        renderStats();
-    }else if(msg.type === "stats_changed") {
-        renderStats();
-    }else if(msg.type === "speed_current") {
-        cache.speed_current = msg.content;
-        renderStats();
-    }else if(msg.type === "rpm_current") {
-        cache.rpm_current = msg.content;
-        renderStats();
-    }else if(msg.type === "pitch_current") {
-        cache.pitch_current = msg.content;
-        renderStats();
-    }else if(msg.type === "preset_current") {
-        cache.preset_current = msg.content;
-        renderStats();
     }
 }
 
 function renderStats() {
-    statistics.setContent(`Engine: Unknown\nSpeed: ${cache.speed_current}\nRPM: ${cache.rpm_current}\nCurrent Pitch: ${cache.pitch_current}\nCurrent Gear: ${cache.gear_current}\nPreset: ${cache.preset_current}\nClimbing: ${cache.pitch_current > 0.018}`);
+    statistics.setContent(`Engine: ${gameData.truck.engine.enabled ? "On" : "Off"}\nSpeed: ${gameData.truck.speed.kph}\nRPM: ${gameData.truck.engine.rpm.value}\nCurrent Pitch: ${gameData.truck.orientation.pitch}\nCurrent Gear: ${gameData.truck.transmission.gear.displayed}\nPreset: ${cache.preset_current}\nClimbing: ${gameData.truck.orientation.pitch > 0.018}`);
+    screen.render();
 }
+
+const client = tst();
+client.watch({interval: 10}, (data) => {
+    gameData = data;
+
+    renderStats();
+
+    automatic.postMessage({type: "game_data", content: data});
+});
 
 screen.render();

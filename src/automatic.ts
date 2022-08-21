@@ -1,4 +1,3 @@
-import tst from "trucksim-telemetry";
 import robot from "kbm-robot";
 import {parentPort} from "worker_threads";
 import { presets } from "./presets";
@@ -7,32 +6,28 @@ parentPort?.postMessage({type: "log", content: "Starting."});
 
 const sleep = (time: number) => new Promise(r => setTimeout(r, time));;
 
-const client = tst();
-
-client.watch({interval: 100}, async (data) => {
-    const isPaused = data.game.paused;
-
-    if(isPaused) return;
-
-    const truckData = data.truck;
-    const gear = truckData.transmission.gear.displayed;
-    const speed = truckData.speed.kph;
-    const pitch = truckData.orientation.pitch;
-    
-    parentPort?.postMessage({type: "speed_current", content: speed});
-    parentPort?.postMessage({type: "gear_current", content: gear});
-    parentPort?.postMessage({type: "rpm_current", content: truckData.engine.rpm.value});
-    parentPort?.postMessage({type: "pitch_current", content: pitch});
-});
-
 robot.startJar();
 
-async function ensureGear(gear: number) {
-    const truckData = client.getTruck();
-    let currentGear = truckData.transmission.gear.displayed;
-    const pitch = truckData.orientation.pitch;
+let gameData: any = undefined;
+let isHandling = false;
 
-    let gearsToShift = currentGear - gear;
+parentPort?.on("message", (msg) => {
+    if(msg.type === "game_data") {
+        gameData = msg.content;
+    }
+
+    if(isHandling) return;
+
+    main();
+
+    isHandling = true;
+});
+
+async function ensureGear(gear: number) {
+    const currentGear = gameData.truck.transmission.gear.displayed;
+    const pitch = gameData.truck.orientation.pitch;
+
+    const gearsToShift = currentGear - gear;
     const fixedNumber = parseInt(gearsToShift.toString().replace("-", ""));
 
     if(fixedNumber === 0) return;
@@ -56,47 +51,33 @@ async function ensureGear(gear: number) {
     }
 }
 
-async function waitForConnection() {
-    return new Promise((resolve, reject) => {
-        while(!client.getTruck()) {
-            continue;
-        }
-
-        parentPort?.postMessage({type: "log", content: "Connected."});
-
-        resolve(true);
-    });
-}
-
 async function main() {
-    await waitForConnection();
-    while (true) {
-        const isPaused = client.getGame().paused;
+    if(!gameData) return isHandling = false;
 
-        if(isPaused) continue;
+    const isPaused = gameData.game.paused;
 
-        const truckData = client.getTruck();
-        const gear = truckData.transmission.gear.displayed;
-        const speed = truckData.speed.kph;
-        const pitch = truckData.orientation.pitch;
+    if(isPaused) return isHandling = false;
 
-        if(gear < 0) continue;
+    const truckData = gameData.truck;
+    const gear = truckData.transmission.gear.displayed;
+    const speed = truckData.speed.kph;
 
-        let presetToUse = "default";
+    if(gear < 0) return isHandling = false;
 
-        if(!client.getTrailer().attached) presetToUse = "no_trailer";
+    let presetToUse = "default";
 
-        parentPort?.postMessage({type: "preset_current", content: presetToUse});
+    if(gameData.trailer.attached) presetToUse = "no_trailer";
 
-        //@ts-ignore
-        const preset: any = presets[presetToUse];
+    parentPort?.postMessage({type: "preset_current", content: presetToUse});
 
-        const gearToShift = preset(speed);
+    //@ts-ignore
+    const preset: any = presets[presetToUse];
 
-        if(gearToShift) await ensureGear(gearToShift);
+    const gearToShift = preset(speed);
 
-        await sleep(500);
-    }
+    if(gearToShift) await ensureGear(gearToShift);
+
+    await sleep(500);
+
+    isHandling = false;
 }
-
-main();
