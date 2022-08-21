@@ -51,7 +51,6 @@ async function ensureGear(gear: number) {
 }
 
 async function main() {
-    parentPort?.postMessage({type: "log", content: `${isHandling}`});
     if(!gameData) return isHandling = false;
 
     const isPaused = gameData.game.paused;
