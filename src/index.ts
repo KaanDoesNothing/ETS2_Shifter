@@ -15,7 +15,8 @@ const statistics = blessed.box({
     label: "Statistics",
     fg: "cyan",
     border: {type: "line"},
-    content: ``
+    content: ``,
+    // right: 100
 });
 
 const log = contrib.log({
