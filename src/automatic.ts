@@ -1,4 +1,4 @@
-import robot from "kbm-robot";
+import robotjs from "robotjs";
 import {parentPort} from "worker_threads";
 import { presets } from "./presets";
 import { GearPresetResult } from "./types";
@@ -6,8 +6,6 @@ import { GearPresetResult } from "./types";
 parentPort?.postMessage({type: "log", content: "Starting."});
 
 const sleep = (time: number) => new Promise(r => setTimeout(r, time));;
-
-robot.startJar();
 
 let gameData: any = undefined;
 let isHandling = false;
@@ -38,7 +36,7 @@ async function ensureGear(gear: number) {
     if(gearsToShift > 0) {
         for (let i = 0; i < gearsToShift; i++) {
             parentPort?.postMessage({type: "log", content: `Shifting Down to ${currentGear - i - 1}th gear.`});
-            await robot.type("DOWN").go();
+           robotjs.keyTap("down");
         }
     }else {
         for (let i = 0; i < fixedNumber; i++) {
@@ -46,7 +44,7 @@ async function ensureGear(gear: number) {
                 return;
             }
             parentPort?.postMessage({type: "log", content: `Shifting Up to ${currentGear + i - 1}th gear.`});
-            await robot.type("UP").go();
+            robotjs.keyTap("up");;
         }
     }
 }
