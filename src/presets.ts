@@ -4,8 +4,10 @@ export const presets = {
             return 14;
         }else if(speed > 78) {
             return 13;
-        }else if(speed > 50) {
+        } else if(speed > 60) {
             return 12;
+        }else if(speed > 50) {
+            return 11;
         }else if(speed > 30) {
             return 10;
         }else if(speed > 20) {

@@ -64,9 +64,9 @@ async function main() {
 
     if(gear < 0) return isHandling = false;
 
-    let presetToUse = "default";
+    let presetToUse = "no_trailer";
 
-    if(!gameData.trailer.attached) presetToUse = "no_trailer";
+    if(gameData.trailer.attached) presetToUse = "default";
 
     parentPort?.postMessage({type: "preset_current", content: presetToUse});
 
