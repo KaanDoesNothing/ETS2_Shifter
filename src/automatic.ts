@@ -2,7 +2,7 @@ import robotjs from "robotjs";
 import { TelemetryData } from "trucksim-telemetry";
 import {parentPort} from "worker_threads";
 import { presets } from "./presets";
-import { GearPresetResult } from "./types";
+import { GearPreset, GearPresetResult } from "./types";
 
 parentPort?.postMessage({type: "log", content: "Starting."});
 
@@ -75,8 +75,7 @@ async function main() {
 
     parentPort?.postMessage({type: "preset_current", content: presetToUse});
 
-    //@ts-ignore
-    const preset = presets[presetToUse];
+    const preset: GearPreset = (presets as any)[presetToUse];
 
     const gearToShift: GearPresetResult = preset(speed);
 
