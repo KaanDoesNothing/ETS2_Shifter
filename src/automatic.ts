@@ -71,7 +71,7 @@ async function main() {
 
     let presetToUse = "no_trailer";
 
-    if(gameData.trailer.attached) presetToUse = "default";
+    if(gameData.trailer.attached) presetToUse = "trailer";
 
     parentPort?.postMessage({type: "preset_current", content: presetToUse});
 

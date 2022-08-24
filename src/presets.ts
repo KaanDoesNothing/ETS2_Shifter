@@ -1,5 +1,5 @@
 export const presets = {
-    default: (speed: number) => {
+    trailer: (speed: number) => {
         if(speed > 98) {
             return 14;
         }else if(speed > 78) {
