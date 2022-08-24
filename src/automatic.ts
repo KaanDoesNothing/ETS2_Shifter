@@ -7,21 +7,27 @@ parentPort?.postMessage({type: "log", content: "Starting."});
 
 const sleep = (time: number) => new Promise(r => setTimeout(r, time));;
 
-let gameData: any = undefined;
-let isHandling = false;
+const state = new Map();
 
-parentPort?.on("message", (msg) => {
-    if(msg.type === "game_data") {
-        gameData = msg.content;
-    }
+function getHandling() {
+    return state.get("is_handling") || false;
+}
 
-    if(isHandling) return;
-    isHandling = true;
+function setHandling(value: boolean) {
+    return state.set("is_handling", value);
+}
 
-    main();
-});
+function getGameData() {
+    return state.get("game_data");
+}
+
+function setGameData(value: object) {
+    return state.set("game_data", value);
+}
 
 async function ensureGear(gear: number) {
+    const gameData = getGameData();
+
     const currentGear = gameData.truck.transmission.gear.displayed;
     const pitch = gameData.truck.orientation.pitch;
 
@@ -50,17 +56,17 @@ async function ensureGear(gear: number) {
 }
 
 async function main() {
-    if(!gameData) return isHandling = false;
+    const gameData = getGameData();
+    if(!gameData) return setHandling(false);
 
     const isPaused = gameData.game.paused;
-
-    if(isPaused) return isHandling = false;
+    if(isPaused) return setHandling(false);
 
     const truckData = gameData.truck;
     const gear = truckData.transmission.gear.displayed;
     const speed = truckData.speed.kph;
 
-    if(gear < 0) return isHandling = false;
+    if(gear < 0) return setHandling(false);
 
     let presetToUse = "no_trailer";
 
@@ -77,5 +83,16 @@ async function main() {
 
     await sleep(500);
 
-    isHandling = false;
+    setHandling(false)
 }
+
+parentPort?.on("message", (msg) => {
+    if(msg.type === "game_data") {
+        if(getHandling()) return;
+
+        setGameData(msg.content);
+        setHandling(true);
+
+        main();
+    }
+});
