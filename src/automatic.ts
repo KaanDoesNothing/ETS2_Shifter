@@ -1,4 +1,5 @@
 import robotjs from "robotjs";
+import { TelemetryData } from "trucksim-telemetry";
 import {parentPort} from "worker_threads";
 import { presets } from "./presets";
 import { GearPresetResult } from "./types";
@@ -18,7 +19,7 @@ function setHandling(value: boolean) {
 }
 
 function getGameData() {
-    return state.get("game_data");
+    return state.get("game_data") as TelemetryData;
 }
 
 function setGameData(value: object) {
