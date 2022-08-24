@@ -42,7 +42,7 @@ async function ensureGear(gear: number) {
     if(gearsToShift > 0) {
         for (let i = 0; i < gearsToShift; i++) {
             parentPort?.postMessage({type: "log", content: `Shifting Down to ${currentGear - i - 1}th gear.`});
-           robotjs.keyTap("down");
+            robotjs.keyTap("down");
         }
     }else {
         for (let i = 0; i < fixedNumber; i++) {
