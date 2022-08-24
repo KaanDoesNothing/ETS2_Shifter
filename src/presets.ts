@@ -1,5 +1,9 @@
+import { parentPort } from "worker_threads";
+import { TelemetryData } from "trucksim-telemetry";
+import { GearPreset, GearPresetResult } from "./types";
+
 export const presets = {
-    trailer: (speed: number) => {
+    trailer: (speed: number): GearPresetResult => {
         if(speed > 98) {
             return 14;
         }else if(speed > 78) {
@@ -18,7 +22,7 @@ export const presets = {
             return 4;
         }
     },
-    no_trailer: (speed: number) => {
+    no_trailer: (speed: number): GearPresetResult => {
         if(speed > 98) {
             return 14;
         }
@@ -39,4 +43,16 @@ export const presets = {
             return 6;
         }
     }
+}
+
+export const presetHandler = (gameData: TelemetryData): GearPreset => {
+    let presetToUse = "no_trailer";
+
+    if(gameData.trailer.attached) presetToUse = "trailer";
+
+    parentPort?.postMessage({type: "preset_current", content: presetToUse});
+
+    const preset: GearPreset = (presets as any)[presetToUse];
+
+    return preset;
 }

@@ -1,7 +1,7 @@
 import robotjs from "robotjs";
 import { TelemetryData } from "trucksim-telemetry";
 import {parentPort} from "worker_threads";
-import { presets } from "./presets";
+import { presetHandler } from "./presets";
 import { GearPreset, GearPresetResult } from "./types";
 
 parentPort?.postMessage({type: "log", content: "Starting."});
@@ -69,14 +69,7 @@ async function main() {
 
     if(gear < 0) return setHandling(false);
 
-    let presetToUse = "no_trailer";
-
-    if(gameData.trailer.attached) presetToUse = "trailer";
-
-    parentPort?.postMessage({type: "preset_current", content: presetToUse});
-
-    const preset: GearPreset = (presets as any)[presetToUse];
-
+    const preset: GearPreset = presetHandler(gameData);
     const gearToShift: GearPresetResult = preset(speed);
 
     if(gearToShift) await ensureGear(gearToShift);
