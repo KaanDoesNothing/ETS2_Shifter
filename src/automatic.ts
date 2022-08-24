@@ -58,16 +58,16 @@ async function ensureGear(gear: number) {
 
 async function main() {
     const gameData = getGameData();
-    if(!gameData) return setHandling(false);
+    if(!gameData) return;
 
     const isPaused = gameData.game.paused;
-    if(isPaused) return setHandling(false);
+    if(isPaused) return;
 
     const truckData = gameData.truck;
     const gear = truckData.transmission.gear.displayed;
     const speed = truckData.speed.kph;
 
-    if(gear < 0) return setHandling(false);
+    if(gear < 0) return;
 
     const preset: GearPreset = presetHandler(gameData);
     const gearToShift: GearPresetResult = preset(speed);
@@ -75,17 +75,17 @@ async function main() {
     if(gearToShift) await ensureGear(gearToShift);
 
     await sleep(500);
-
-    setHandling(false)
 }
 
-parentPort?.on("message", (msg) => {
+parentPort?.on("message", async (msg) => {
     if(msg.type === "game_data") {
         if(getHandling()) return;
 
         setGameData(msg.content);
         setHandling(true);
 
-        main();
+        await main();
+
+        setHandling(false);
     }
 });
