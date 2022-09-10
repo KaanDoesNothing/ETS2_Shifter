@@ -7,6 +7,7 @@ import { GearPreset, GearPresetResult } from "./types";
 parentPort?.postMessage({type: "log", content: "Starting."});
 
 const sleep = (time: number) => new Promise(r => setTimeout(r, time));;
+
 const waitForShift = () => new Promise((resolve, reject) => {
     const callback = (msg: any) => {
         if(msg.type === "gear_change") {
@@ -85,10 +86,6 @@ async function main() {
     const gearToShift: GearPresetResult = preset(speed);
 
     if(gearToShift) await ensureGear(gearToShift);
-
-    // return;
-
-    // await sleep(500);
 }
 
 parentPort?.on("message", async (msg) => {
