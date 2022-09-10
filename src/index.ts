@@ -49,6 +49,13 @@ function renderStats() {
 }
 
 const client = tst();
+
+client.truck.on("gear-change", (current: number) => {
+    automatic.postMessage({type: "gear_change", content: current});
+
+    log.log("Finished Shifting.");
+});
+
 client.watch({interval: 10}, (data) => {
     gameData = data;
 

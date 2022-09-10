@@ -7,6 +7,16 @@ import { GearPreset, GearPresetResult } from "./types";
 parentPort?.postMessage({type: "log", content: "Starting."});
 
 const sleep = (time: number) => new Promise(r => setTimeout(r, time));;
+const waitForShift = () => new Promise((resolve, reject) => {
+    const callback = (msg: any) => {
+        if(msg.type === "gear_change") {
+            parentPort?.removeListener("message", callback);
+            resolve("Received");
+        }
+    }
+
+    parentPort?.on("message", callback);
+});
 
 const state = new Map();
 
@@ -54,6 +64,8 @@ async function ensureGear(gear: number) {
             robotjs.keyTap("up");;
         }
     }
+
+    await Promise.race([waitForShift(), sleep(2000)]);
 }
 
 async function main() {
@@ -74,7 +86,9 @@ async function main() {
 
     if(gearToShift) await ensureGear(gearToShift);
 
-    await sleep(500);
+    // return;
+
+    // await sleep(500);
 }
 
 parentPort?.on("message", async (msg) => {
