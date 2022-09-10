@@ -41,7 +41,7 @@ function waitForShift({id}: {id: string}) {
 
 async function ensureGear({id, gear}: {id: string, gear: number}) {
     const gameData = getGameData({id});
-    
+
     const currentGear = gameData.truck.transmission.gear.displayed;
     const pitch = gameData.truck.orientation.pitch;
 
@@ -87,7 +87,10 @@ async function handle({id}: {id: string}) {
     const preset: GearPreset = presetHandler(gameData);
     const gearToShift: GearPresetResult = preset(speed);
 
-    if(gearToShift) await ensureGear({id, gear: gearToShift});
+    if(gearToShift) {
+        await ensureGear({id, gear: gearToShift});
+        server.sockets.to(id).emit("message", {type: "preset_current", content: preset.name});
+    }
 }
 
 server.on("connection", (client) => {

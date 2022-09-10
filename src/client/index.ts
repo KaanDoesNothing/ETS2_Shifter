@@ -8,11 +8,11 @@ const client = SocketIO("http://localhost:7999");
 
 const tsclient = tst();
 
-let gameData: any = undefined;
-
 let cache = {
-    preset_current: "Unknown"
+  preset_current: "Unknown"
 }
+
+let gameData: any = undefined;
 
 export const screen = blessed.screen({title: "Client", smartCSR: true});
 
@@ -20,8 +20,7 @@ const statistics = blessed.box({
     label: "Statistics",
     fg: "cyan",
     border: {type: "line"},
-    content: ``,
-    // right: 100
+    content: ``
 });
 
 const log = contrib.log({
@@ -34,19 +33,10 @@ const log = contrib.log({
 screen.append(statistics);
 screen.append(log);
 
-function handleMessage(msg: {type: string, content: any}) {
-    if(msg.type === "log") {
-        log.log(msg.content);
-    }else if(msg.type === "preset_current") {
-        cache.preset_current = msg.content;
-    }
-}
-
 function renderStats() {
     statistics.setContent(`Engine: ${gameData.truck.engine.enabled ? "On" : "Off"}\nSpeed: ${gameData.truck.speed.kph}\nRPM: ${gameData.truck.engine.rpm.value.toFixed()}\nCurrent Pitch: ${gameData.truck.orientation.pitch}\nCurrent Gear: ${gameData.truck.transmission.gear.displayed}\nPreset: ${cache.preset_current}\nClimbing: ${gameData.truck.orientation.pitch > 0.018}`);
     screen.render();
 }
-
 
 tsclient.watch({interval: 10}, (data) => {
   client.emit("message", {type: "game_data", content: data});
@@ -71,6 +61,8 @@ client.on("message", async (msg) => {
   }else if(msg.type === "shift_down") {
     log.log("Has to shift down");
     await robotjs.keyTap("down");
+  }else if(msg.type === "preset_current") {
+    cache.preset_current = msg.content;
   }
 });
 
