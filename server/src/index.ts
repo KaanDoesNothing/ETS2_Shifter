@@ -1,6 +1,6 @@
 import SocketIO from "socket.io";
-import {presetHandler, presets} from "../presets";
-import { GearPreset, GearPresetResult } from "../types";
+import {presetHandler} from "./presets";
+import { GearPreset, GearPresetResult } from "./types";
 
 const server = new SocketIO.Server();
 const game_data = new Map();
