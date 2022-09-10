@@ -1,7 +1,12 @@
+import SocketIO from "socket.io-client";
+import tst from "trucksim-telemetry";
+import robotjs from "robotjs";
 import blessed from "blessed";
 import contrib from "blessed-contrib";
-import { Worker } from "worker_threads";
-import tst from "trucksim-telemetry";
+
+const client = SocketIO("http://localhost:7999");
+
+const tsclient = tst();
 
 let gameData: any = undefined;
 
@@ -29,12 +34,6 @@ const log = contrib.log({
 screen.append(statistics);
 screen.append(log);
 
-log.log("Starting Automatic");
-const automatic = new Worker("./automatic.js");
-automatic.on("message", handleMessage);
-automatic.on("error", (error) => console.log(error));
-automatic.on("exit", () => log.log("Worker Closed."));
-
 function handleMessage(msg: {type: string, content: any}) {
     if(msg.type === "log") {
         log.log(msg.content);
@@ -48,20 +47,31 @@ function renderStats() {
     screen.render();
 }
 
-const client = tst();
 
-client.truck.on("gear-change", (current: number) => {
-    automatic.postMessage({type: "gear_change", content: current});
+tsclient.watch({interval: 10}, (data) => {
+  client.emit("message", {type: "game_data", content: data});
 
-    log.log("Finished Shifting.");
+  gameData = data;
+
+  renderStats();
 });
 
-client.watch({interval: 10}, (data) => {
-    gameData = data;
+tsclient.truck.on("gear-change", (current: number) => {
+  client.emit("message", {type: "gear_change", content: current});
 
-    renderStats();
+  log.log("Finished shifting");
+});
 
-    automatic.postMessage({type: "game_data", content: data});
+client.on("message", async (msg) => {
+  if(msg.type === "log") {
+    log.log(msg.content)
+  }else if(msg.type === "shift_up") {
+    log.log("Has to shift up");
+    await robotjs.keyTap("up");
+  }else if(msg.type === "shift_down") {
+    log.log("Has to shift down");
+    await robotjs.keyTap("down");
+  }
 });
 
 screen.render();
